@@ -1,0 +1,33 @@
+{
+  "name": "ecommerce-ai-frontend",
+  "version": "1.0.0",
+  "description": "E-commerce AI Operations Management Platform - Frontend",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "axios": "^1.6.0",
+    "recharts": "^2.10.0",
+    "date-fns": "^2.30.0",
+    "lucide-react": "^0.460.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^8.54.0",
+    "eslint-config-next": "^15.0.0"
+  }
+}

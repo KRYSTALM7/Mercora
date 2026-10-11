@@ -1,0 +1,58 @@
+# Environment files (contain secrets)
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Node
+node_modules/
+.next/
+dist/
+build/
+*.tsbuildinfo
+
+# Data
+chromadb_data/
+
+# Logs
+*.log
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+.neon
+
+# Allow safe example configuration
+!.env.example
+
+# Next.js and Node
+node_modules/
+.next/
+
+# Local generated data
+dist/
+build/
+
+# Environment files at any directory depth
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Generated dependencies and build output
+**/node_modules/
+**/.next/
