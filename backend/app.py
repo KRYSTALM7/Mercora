@@ -20,6 +20,7 @@ from backend.routers.orders import router as orders_router
 from backend.routers.inventory import router as inventory_router
 from backend.routers.analytics import router as analytics_router
 from backend.routers import cascade_integration
+from backend.routers import voice
 
 # Configure logging
 logging.basicConfig(
@@ -51,6 +52,7 @@ app.include_router(orders_router)
 app.include_router(inventory_router)
 app.include_router(analytics_router)
 app.include_router(cascade_integration.router)
+app.include_router(voice.router)
 
 # ============================================================================
 # Health & Info Endpoints
@@ -82,52 +84,51 @@ async def info():
 async def get_metrics(days: int = 30, db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
     """Get business metrics"""
     try:
-        # Get orders
-        orders = db.query(Order).all()
-        order_items = db.query(OrderItem).all()
-        products = db.query(Product).all()
-        inventory = db.query(Inventory).all()
+        # Count queries are fast with proper indexes
+        order_count = db.query(Order).count()
+        product_count = db.query(Product).count()
         
-        if not orders or not products:
+        if order_count == 0:
             return {
                 "period_days": days,
                 "sales": {"total_sales": 0, "order_count": 0},
-                "inventory": {"total_products": len(products), "low_stock_items": 0},
+                "inventory": {"total_products": product_count, "low_stock_items": 0},
                 "top_products": []
             }
         
-        # Calculate metrics
-        total_sales = sum(o.total_amount for o in orders if o.total_amount)
-        order_count = len(orders)
+        # Calculate total sales efficiently using SQL aggregation
+        from sqlalchemy import func
+        total_sales_result = db.query(func.sum(Order.total_amount)).scalar()
+        total_sales = float(total_sales_result) if total_sales_result else 0
         
-        # Calculate product sales
-        product_sales = {}
-        for item in order_items:
-            if item.product_id not in product_sales:
-                product_sales[item.product_id] = {"quantity": 0, "revenue": 0}
-            product_sales[item.product_id]["quantity"] += item.quantity
-            product_sales[item.product_id]["revenue"] += item.unit_price * item.quantity
-        
-        # Get top 5 products
-        top_product_ids = sorted(
-            product_sales.items(), 
-            key=lambda x: x[1]["quantity"], 
-            reverse=True
-        )[:5]
+        # Get top 5 products by quantity sold using efficient SQL join
+        top_products_query = (
+            db.query(
+                Product.id,
+                Product.sku,
+                Product.name,
+                Product.price,
+                func.sum(OrderItem.quantity).label('total_quantity')
+            )
+            .join(OrderItem, OrderItem.product_id == Product.id)
+            .group_by(Product.id, Product.sku, Product.name, Product.price)
+            .order_by(func.sum(OrderItem.quantity).desc())
+            .limit(5)
+        )
         
         top_products = []
-        for prod_id, _ in top_product_ids:
-            prod = db.query(Product).filter(Product.id == prod_id).first()
-            if prod:
-                top_products.append({
-                    "id": prod.id,
-                    "sku": prod.sku,
-                    "name": prod.name,
-                    "price": prod.price
-                })
+        for row in top_products_query.all():
+            top_products.append({
+                "id": row.id,
+                "sku": row.sku,
+                "name": row.name,
+                "price": row.price
+            })
         
-        # Low stock items
-        low_stock = [inv for inv in inventory if inv.quantity_on_hand < inv.reorder_point]
+        # Count low stock items efficiently
+        low_stock_count = db.query(Inventory).filter(
+            Inventory.quantity_on_hand < Inventory.reorder_point
+        ).count()
         
         return {
             "period_days": days,
@@ -136,8 +137,8 @@ async def get_metrics(days: int = 30, db: Session = Depends(get_db), user: dict 
                 "order_count": order_count
             },
             "inventory": {
-                "total_products": len(products),
-                "low_stock_items": len(low_stock)
+                "total_products": product_count,
+                "low_stock_items": low_stock_count
             },
             "top_products": top_products
         }

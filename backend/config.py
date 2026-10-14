@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     CASCADE_DEMO_USER: str = "ops-ravi"  # Demo user ID for Cascade simulation
     CASCADE_TIMEOUT_SECONDS: float = 30.0
 
+    # Gemini AI for Voice Transcription
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-1.5-flash"
+
     class Config:
         env_file = _ENV_FILE
         case_sensitive = True

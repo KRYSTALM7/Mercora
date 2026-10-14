@@ -1,7 +1,7 @@
 'use client'
 
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { Plus, Eye, Truck, XCircle, ShoppingCart, Zap } from 'lucide-react'
+import { Plus, Eye, Truck, XCircle, ShoppingCart, Zap, Mic } from 'lucide-react'
 import { apiClient } from '@/lib/api'
 import { formatCurrency, formatDate } from '@/lib/format'
 import { Customer, Order, OrderCreate, OrderItem, Product } from '@/types'
@@ -12,8 +12,18 @@ import Spinner from '@/components/ui/Spinner'
 import EmptyState from '@/components/ui/EmptyState'
 import Badge, { statusToVariant } from '@/components/ui/Badge'
 import CascadeSimulationModal from '@/components/cascade/CascadeSimulationModal'
+import VoiceRecorder from '@/components/voice/VoiceRecorder'
 
 const EMPTY_FORM: OrderCreate = { order_number: '', customer_id: 0, total_amount: 0, status: 'pending' }
+
+// Demo order mapping: Only these Mercora order IDs can be simulated with Cascade
+// This matches the backend DEMO_ORDER_MAPPING in cascade_integration.py
+// These are the seeded demo orders created by backend/scripts/seed_demo_data.py
+const DEMO_ORDER_IDS = [21, 22, 23, 25, 27, 30, 35, 40]
+
+const isDemoOrder = (orderId: number): boolean => {
+  return DEMO_ORDER_IDS.includes(orderId)
+}
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -38,6 +48,12 @@ export default function OrdersPage() {
   const [cascadeAction, setCascadeAction] = useState<CascadeActionDetail | null>(null)
   const [cascadeError, setCascadeError] = useState<string | null>(null)
   const [simulatingOrderId, setSimulatingOrderId] = useState<number | null>(null)
+
+  // Voice input state
+  const [voiceInputModalOpen, setVoiceInputModalOpen] = useState(false)
+  const [voiceInputOrder, setVoiceInputOrder] = useState<Order | null>(null)
+  const [transcribedText, setTranscribedText] = useState('')
+  const [voiceError, setVoiceError] = useState<string | null>(null)
 
   const customerMap = useMemo(() => new Map(customers.map((c) => [c.id, c.name])), [customers])
   const productMap = useMemo(() => new Map(products.map((p) => [p.id, p])), [products])
@@ -123,7 +139,7 @@ export default function OrdersPage() {
     try {
       const response = await apiClient.simulateRefund({ order_id: order.id })
       
-      if (response.status === 'error') {
+      if (response.status === 'error' || response.status === 'unauthorized' || response.status === 'unavailable') {
         setCascadeError(response.error || 'Simulation failed')
       } else if (response.cascade_action) {
         setCascadeAction(response.cascade_action)
@@ -131,11 +147,47 @@ export default function OrdersPage() {
         setCascadeError('No simulation result received')
       }
     } catch (err: any) {
-      setCascadeError(err.response?.data?.detail || 'Failed to simulate refund')
+      // Handle demo scope errors specially
+      const detail = err.response?.data?.detail
+      if (detail && typeof detail === 'object' && detail.error === 'Order not in demo scope') {
+        setCascadeError(
+          `${detail.message}\n\nAvailable demo order IDs: ${detail.demo_order_ids?.join(', ')}`
+        )
+      } else {
+        setCascadeError(err.response?.data?.detail || err.message || 'Failed to simulate refund')
+      }
     } finally {
       setCascadeSimulating(false)
       setSimulatingOrderId(null)
     }
+  }
+
+  const openVoiceInputModal = (order: Order) => {
+    setVoiceInputOrder(order)
+    setTranscribedText('')
+    setVoiceError(null)
+    setVoiceInputModalOpen(true)
+  }
+
+  const handleVoiceTranscript = (text: string) => {
+    setTranscribedText(text)
+    setVoiceError(null)
+  }
+
+  const handleVoiceError = (error: string) => {
+    setVoiceError(error)
+  }
+
+  const confirmVoiceInput = async () => {
+    if (!voiceInputOrder || !transcribedText.trim()) return
+    
+    // Close voice modal and open simulation modal
+    setVoiceInputModalOpen(false)
+    
+    // For now, automatically trigger simulation
+    // In a real implementation, you'd parse the transcribed text
+    // to extract the action parameters (amount, reason, etc.)
+    await handleSimulateRefund(voiceInputOrder)
   }
 
   return (
@@ -206,17 +258,29 @@ export default function OrdersPage() {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        {(o.status === 'shipped' || o.status === 'completed') && (
-                          <button
-                            type="button"
-                            onClick={() => handleSimulateRefund(o)}
-                            disabled={simulatingOrderId === o.id}
-                            className="text-slate-400 hover:text-purple-600 transition-colors disabled:opacity-50"
-                            aria-label="Simulate refund with Cascade"
-                            title="Simulate refund with Cascade"
-                          >
-                            <Zap className="w-4 h-4" />
-                          </button>
+                        {(o.status === 'shipped' || o.status === 'completed') && isDemoOrder(o.id) && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => openVoiceInputModal(o)}
+                              disabled={simulatingOrderId === o.id}
+                              className="text-slate-400 hover:text-purple-600 transition-colors disabled:opacity-50"
+                              aria-label="Voice input for refund (demo)"
+                              title="Use voice to request refund (demo orders only)"
+                            >
+                              <Mic className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSimulateRefund(o)}
+                              disabled={simulatingOrderId === o.id}
+                              className="text-slate-400 hover:text-purple-600 transition-colors disabled:opacity-50"
+                              aria-label="Simulate refund with Cascade (demo)"
+                              title="Simulate refund with Cascade (demo orders only)"
+                            >
+                              <Zap className="w-4 h-4" />
+                            </button>
+                          </>
                         )}
                         {o.status === 'pending' && (
                           <button
@@ -357,6 +421,76 @@ export default function OrdersPage() {
         isLoading={cascadeSimulating}
         error={cascadeError}
       />
+
+      {voiceInputModalOpen && voiceInputOrder && (
+        <Modal
+          title={`Voice Order Action — ${voiceInputOrder.order_number}`}
+          onClose={() => setVoiceInputModalOpen(false)}
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setVoiceInputModalOpen(false)} type="button">
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmVoiceInput}
+                disabled={!transcribedText.trim()}
+              >
+                Confirm & Simulate
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-900">
+                <strong>Order:</strong> {voiceInputOrder.order_number}<br />
+                <strong>Total:</strong> {formatCurrency(voiceInputOrder.total_amount)}<br />
+                <strong>Status:</strong> {voiceInputOrder.status}
+              </p>
+            </div>
+
+            <div className="form-group mb-0">
+              <label className="form-label flex items-center gap-2">
+                <Mic className="w-4 h-4" />
+                Voice Input
+              </label>
+              <div className="flex items-center gap-3">
+                <textarea
+                  className="input-field flex-1"
+                  rows={3}
+                  placeholder="Click the microphone to record your request, or type here..."
+                  value={transcribedText}
+                  onChange={(e) => setTranscribedText(e.target.value)}
+                />
+                <VoiceRecorder
+                  onTranscript={handleVoiceTranscript}
+                  onError={handleVoiceError}
+                  disabled={!!transcribedText.trim()}
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                Example: &ldquo;Please issue a partial refund of ₹3,000 for this order&rdquo;
+              </p>
+            </div>
+
+            {voiceError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                {voiceError}
+              </div>
+            )}
+
+            {transcribedText && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm font-medium text-green-900 mb-1">Transcribed Request:</p>
+                <p className="text-sm text-green-800">{transcribedText}</p>
+                <p className="text-xs text-green-600 mt-2">
+                  Review the text above and click &ldquo;Confirm & Simulate&rdquo; to analyze consequences
+                </p>
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }

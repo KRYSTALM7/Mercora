@@ -113,12 +113,12 @@ export default function ProductsPage() {
 
   return (
     <div>
-      <div className="header-main">
+      <div className="header-main flex-col sm:flex-row gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Products</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Products</h1>
           <p className="text-slate-500 text-sm mt-1">{rows.length} product{rows.length === 1 ? '' : 's'}</p>
         </div>
-        <Button onClick={openCreateModal}>
+        <Button onClick={openCreateModal} className="w-full sm:w-auto">
           <Plus className="w-4 h-4" />
           New Product
         </Button>
@@ -128,18 +128,18 @@ export default function ProductsPage() {
         <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>
       )}
 
-      <div className="flex flex-wrap items-center gap-4 mb-6">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+      <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 mb-6">
+        <div className="relative flex-1 min-w-0 sm:min-w-[240px]">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 sm:left-4 top-1/2 -translate-y-1/2" />
           <input
-            className="input-field pl-11"
+            className="input-field pl-10 sm:pl-11 text-sm"
             placeholder="Search by name or SKU..."
             value={search}
             disabled={lowStockOnly}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-600 font-medium">
+        <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-600 font-medium whitespace-nowrap">
           <input
             type="checkbox"
             className="w-4 h-4 rounded border-slate-300"
@@ -147,7 +147,8 @@ export default function ProductsPage() {
             onChange={(e) => toggleLowStock(e.target.checked)}
           />
           <AlertTriangle className="w-4 h-4 text-yellow-500" />
-          Low stock only
+          <span className="hidden sm:inline">Low stock only</span>
+          <span className="sm:hidden">Low stock</span>
         </label>
       </div>
 
@@ -159,62 +160,66 @@ export default function ProductsPage() {
         ) : rows.length === 0 ? (
           <EmptyState icon={Package} title="No products found" description="Try adjusting your search or filters" />
         ) : (
-          <div className="table-wrapper">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>SKU</th>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Price</th>
-                  <th>Cost</th>
-                  <th>Margin</th>
-                  {lowStockOnly && <th>Stock</th>}
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((p) => {
-                  const margin = p.price > 0 ? ((p.price - p.cost) / p.price) * 100 : 0
-                  return (
-                    <tr key={p.id}>
-                      <td className="text-slate-500">{p.sku}</td>
-                      <td className="font-medium">{p.name}</td>
-                      <td>{p.category}</td>
-                      <td>{formatCurrency(p.price)}</td>
-                      <td>{formatCurrency(p.cost)}</td>
-                      <td>{margin.toFixed(0)}%</td>
-                      {lowStockOnly && isLowStockRow(p) && (
-                        <td className="text-yellow-700 font-medium">
-                          {p.current_stock} / {p.reorder_point}
-                        </td>
-                      )}
-                      <td>
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => openEditModal(p)}
-                            className="text-slate-400 hover:text-primary-600 transition-colors"
-                            aria-label="Edit"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(p.id)}
-                            disabled={deletingId === p.id}
-                            className="text-slate-400 hover:text-red-600 transition-colors disabled:opacity-50"
-                            aria-label="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <div className="inline-block min-w-full align-middle">
+              <div className="overflow-hidden">
+                <table className="table min-w-full">
+                  <thead>
+                    <tr>
+                      <th className="px-3 sm:px-6">SKU</th>
+                      <th className="px-3 sm:px-6">Name</th>
+                      <th className="px-3 sm:px-6 hidden md:table-cell">Category</th>
+                      <th className="px-3 sm:px-6">Price</th>
+                      <th className="px-3 sm:px-6 hidden lg:table-cell">Cost</th>
+                      <th className="px-3 sm:px-6 hidden lg:table-cell">Margin</th>
+                      {lowStockOnly && <th className="px-3 sm:px-6">Stock</th>}
+                      <th className="px-3 sm:px-6"></th>
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {rows.map((p) => {
+                      const margin = p.price > 0 ? ((p.price - p.cost) / p.price) * 100 : 0
+                      return (
+                        <tr key={p.id}>
+                          <td className="px-3 sm:px-6 text-xs sm:text-sm text-slate-500">{p.sku}</td>
+                          <td className="px-3 sm:px-6 text-xs sm:text-sm font-medium">{p.name}</td>
+                          <td className="px-3 sm:px-6 text-xs sm:text-sm hidden md:table-cell">{p.category}</td>
+                          <td className="px-3 sm:px-6 text-xs sm:text-sm">{formatCurrency(p.price)}</td>
+                          <td className="px-3 sm:px-6 text-xs sm:text-sm hidden lg:table-cell">{formatCurrency(p.cost)}</td>
+                          <td className="px-3 sm:px-6 text-xs sm:text-sm hidden lg:table-cell">{margin.toFixed(0)}%</td>
+                          {lowStockOnly && isLowStockRow(p) && (
+                            <td className="px-3 sm:px-6 text-xs sm:text-sm text-yellow-700 font-medium">
+                              {p.current_stock} / {p.reorder_point}
+                            </td>
+                          )}
+                          <td className="px-3 sm:px-6">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <button
+                                type="button"
+                                onClick={() => openEditModal(p)}
+                                className="text-slate-400 hover:text-primary-600 transition-colors p-1"
+                                aria-label="Edit"
+                              >
+                                <Pencil className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(p.id)}
+                                disabled={deletingId === p.id}
+                                className="text-slate-400 hover:text-red-600 transition-colors disabled:opacity-50 p-1"
+                                aria-label="Delete"
+                              >
+                                <Trash2 className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
       </div>

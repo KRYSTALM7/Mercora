@@ -16,6 +16,58 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/cascade", tags=["cascade"], dependencies=[Depends(get_current_user)])
 
 
+# Demo Order Mapping: Mercora order ID → Cascade domain order ID
+# This maps a limited set of Mercora orders to Cascade's NovaCart seed data for demonstration.
+# The mapping preserves Cascade's rich domain scenarios (VIP customers, risk tiers, etc.)
+# without requiring cross-system data synchronization.
+#
+# Cascade seed orders (ORD-10xxx) are defined in cascade/backend/app/seed/novacart_data.py
+# and represent the NovaCart retail business with products like laptops, headphones, watches.
+#
+# Mapping strategy: Selected Mercora orders are mapped to Cascade orders with similar
+# characteristics (value, status, refundability) to provide realistic simulation scenarios.
+#
+# Mercora demo orders are created by backend/scripts/seed_demo_data.py (ORD-DEMO-xxx)
+DEMO_ORDER_MAPPING = {
+    # Map seeded Mercora demo orders to Cascade's NovaCart orders
+    # Mercora: ORD-DEMO-001-020 (IDs 21-40)
+    # Cascade: ORD-10xxx (NovaCart retail orders)
+    21: "ORD-10482",  # ORD-DEMO-001: High-value VIP order (₹97,500: laptop + headphones) - HERO scenario
+    22: "ORD-10510",  # ORD-DEMO-002: Low-value order (₹2,798) - under auto-approve limit
+    23: "ORD-10495",  # ORD-DEMO-003: Medium-value order (₹19,798: watch + cables) - standard refund
+    25: "ORD-10501",  # ORD-DEMO-005: Shipped order (₹55,000: phone) - notification scenario
+    27: "ORD-10520",  # ORD-DEMO-007: Partially refunded scenario (₹15,000: chair)
+    30: "ORD-10540",  # ORD-DEMO-010: High-value order #2 (₹103,000: laptop + watch) - concurrency demo
+    35: "ORD-10477",  # ORD-DEMO-015: Delivered order (₹3,097) - test ineligible status handling
+    40: "ORD-10530",  # ORD-DEMO-020: Standard order (₹55,000: phone) - clarification demo
+}
+
+
+def get_cascade_order_id(mercora_order_id: int) -> str:
+    """
+    Map Mercora order ID to Cascade demo domain order ID.
+    
+    Raises HTTPException (400) if the order is not in the demo scope.
+    This prevents attempting simulations on unmapped orders that don't
+    exist in Cascade's domain.
+    """
+    cascade_id = DEMO_ORDER_MAPPING.get(mercora_order_id)
+    if cascade_id is None:
+        available_ids = sorted(DEMO_ORDER_MAPPING.keys())
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "Order not in demo scope",
+                "message": f"Cascade simulation is available for demo orders only. "
+                          f"This integration maps {len(DEMO_ORDER_MAPPING)} representative Mercora orders "
+                          f"to Cascade's NovaCart seed data.",
+                "demo_order_ids": available_ids,
+                "requested_order_id": mercora_order_id
+            }
+        )
+    return cascade_id
+
+
 class SimulateRefundRequest(BaseModel):
     order_id: int
     reason: Optional[str] = "customer_request"
@@ -76,11 +128,17 @@ async def simulate_refund(
     Simulate a refund through Cascade.
     
     This endpoint:
-    1. Validates the order exists
-    2. Constructs a structured action for Cascade
-    3. Calls Cascade's simulation API
-    4. Returns the consequence analysis
-    5. DOES NOT execute the refund or modify order state
+    1. Validates the order exists in Mercora
+    2. Validates the order is in the demo mapping scope
+    3. Constructs a Cascade simulation request using the correct agent/tool
+    4. Calls Cascade's simulation API with the mapped order ID
+    5. Returns the consequence analysis
+    6. DOES NOT execute the refund or modify order state
+    
+    Demo Scope:
+    - Only mapped orders (see DEMO_ORDER_MAPPING) can be simulated
+    - Unmapped orders return 400 with available order IDs
+    - This enforces honest demo boundaries without silently failing
     
     Security:
     - Requires JWT authentication (inherited from router dependencies)
@@ -88,10 +146,13 @@ async def simulate_refund(
     - Never allows frontend to specify privileged identity
     - Validates order exists before making external API call
     """
-    # Validate order exists
+    # Validate order exists in Mercora
     order = db.query(Order).filter(Order.id == request.order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Validate order is in demo scope (raises 400 if not mapped)
+    cascade_order_id = get_cascade_order_id(order.id)
     
     # Check order is refundable
     if order.status in ["cancelled", "refunded"]:
@@ -104,13 +165,20 @@ async def simulate_refund(
     order_status_before = order.status
     order_id_internal = order.id
     
-    # Construct Cascade action
+    # Construct Cascade simulation request
+    # Agent: customer-support (owns request_refund tool)
+    # Tool: request_refund (asks Finance to issue refund via reaction rule)
+    # This follows Cascade's authorization model where support requests refunds
+    # but cannot directly execute them.
+    #
+    # NOTE: We pass only order_id and reason. Cascade will determine the refund
+    # amount from its own order database. The mapping ensures Cascade evaluates
+    # consequences for an order with similar characteristics to the Mercora order.
     cascade_action = {
-        "agent_id": "commerce-ops",
-        "tool": "process_refund",
+        "agent_id": "customer-support",
+        "tool": "request_refund",
         "parameters": {
-            "order_id": order.order_number,
-            "amount": str(order.total_amount),
+            "order_id": cascade_order_id,  # Use mapped Cascade order ID
             "reason": request.reason
         }
     }
