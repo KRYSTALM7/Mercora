@@ -23,6 +23,15 @@
 
 Mercora is a demo e-commerce operations app for orders, products, customers, and inventory. Its refund flow connects the operator experience to [Cascade](https://github.com/KRYSTALM7/cascade), a consequence-intelligence engine.
 
+## Demo
+
+▶ **[Watch the demo video](https://drive.google.com/file/d/1sN-F9TT0Ke0mTdZJRb-CoeltACRN_oip/view?usp=sharing)**
+
+**Live sites:**
+- **Mercora (frontend):** https://demo-polish-web---mercora-web-gp5ciyqy6a-el.a.run.app/dashboard
+- **Cascade API (consequence engine backend):** https://cascade-api-1097302968574.asia-south1.run.app
+- **Cascade engine (backend of the consequence simulation):** https://github.com/KRYSTALM7/cascade
+
 ## Why Mercora?
 
 Operators using AI agents to cancel, refund, or edit orders often cannot see what an action will trigger downstream. **Cascade is the engine; Mercora is the real-world surface.** A refund starts as a button in a familiar operations app, showing the integration working inside a product rather than only inside Cascade's own UI.
@@ -49,10 +58,7 @@ Refunds are a useful first case: money moves, the action can be partly irreversi
 - Review blast radius, risk factors, and policy decisions in the order workflow.
 - Run a built-in Cascade demo scenario. Simulations do not execute operations.
 
-## Demo
 
-- **Video:** A public recording is not available yet.
-- **Live app:** [Open Mercora](https://demo-polish-web---mercora-web-gp5ciyqy6a-el.a.run.app/dashboard)
 
 ## How It Works
 
