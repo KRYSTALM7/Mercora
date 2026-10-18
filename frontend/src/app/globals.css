@@ -190,7 +190,7 @@ select {
 }
 
 .container-sidebar {
-  @apply h-screen overflow-y-auto flex flex-col;
+  @apply h-screen overflow-y-auto flex-col;
 }
 
 .header-main {

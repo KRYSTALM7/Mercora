@@ -21,11 +21,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 flex-col overflow-hidden">
-      <div className="flex flex-1 overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-slate-50 md:h-screen md:min-h-0 md:overflow-hidden">
+      <div className="flex flex-1 flex-col md:min-h-0 md:flex-row md:overflow-hidden">
         <Sidebar />
-        <div className="flex flex-col flex-1 overflow-hidden min-w-0">
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">{children}</main>
+        <div className="flex min-w-0 flex-1 flex-col md:min-h-0 md:overflow-hidden">
+          <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8 md:overflow-y-auto">{children}</main>
           <footer className="border-t border-slate-200 bg-white px-4 sm:px-8 py-4 flex-shrink-0">
             <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
               <div className="text-center sm:text-left">
@@ -35,7 +35,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </div>
               <div className="text-center sm:text-right">
                 <a
-                  href="http://localhost:5173"
+                  href="https://cascade-web-gp5ciyqy6a-el.a.run.app"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"

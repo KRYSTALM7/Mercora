@@ -1,166 +1,319 @@
-# Mercora
+<p align="center">
+  <img src="docs/assets/logo.png" width="120" alt="Cascade logo used by Mercora" />
+</p>
 
-**AI-powered e-commerce operations.**
+<h1 align="center">Mercora</h1>
 
-Mercora is an e-commerce operations application for managing orders, products, customers and inventory, with an integration to Cascade for refund consequence simulation.
+<p align="center"><strong>See what an AI action will set in motion before it happens.</strong></p>
 
----
+<p align="center">
+  <img src="https://img.shields.io/badge/Google_AI-Builder_Cup_2026-4285F4?style=flat-square&logo=google" alt="Google AI Builder Cup 2026" />
+  <img src="https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=nextdotjs" alt="Next.js 15" />
+  <img src="https://img.shields.io/badge/React-19-149ECA?style=flat-square&logo=react" alt="React 19" />
+  <img src="https://img.shields.io/badge/FastAPI-0.104.1-009688?style=flat-square&logo=fastapi" alt="FastAPI 0.104.1" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Neon-008BB9?style=flat-square&logo=postgresql" alt="PostgreSQL on Neon" />
+  <img src="https://img.shields.io/badge/Google_Cloud-Run-4285F4?style=flat-square&logo=googlecloud" alt="Google Cloud Run" />
+  <a href="https://github.com/KRYSTALM7/cascade"><img src="https://img.shields.io/badge/Engine-Cascade-7C3AED?style=flat-square" alt="Cascade consequence intelligence engine" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License" /></a>
+</p>
+
+<p align="center">
+  <a href="#why-mercora">Why</a> · <a href="#key-features">Features</a> · <a href="#demo">Demo</a> · <a href="#how-it-works">Architecture</a> · <a href="#getting-started">Quick Start</a> · <a href="#team">Team</a>
+</p>
+
+Mercora is a demo e-commerce operations app for orders, products, customers, and inventory. Its refund flow connects the operator experience to [Cascade](https://github.com/KRYSTALM7/cascade), a consequence-intelligence engine.
+
+<p align="center">
+  <a href="https://REPLACE_WITH_DEMO_VIDEO_URL"><img src="docs/assets/screenshots/05-cascade-simulation-result.png" width="760" alt="Cascade simulation result showing a refund's blast radius, risk, and policy decision" /></a>
+  <br /><em>A refund simulation, with downstream impact visible before anyone acts.</em>
+</p>
+
+## Why Mercora?
+
+Operators using AI agents to cancel, refund, or edit orders often cannot see what an action will trigger downstream. **Cascade is the engine; Mercora is the real-world surface.** A refund starts as a button in a familiar operations app, showing the integration working inside a product rather than only inside Cascade's own UI.
+
+Refunds are a useful first case: money moves, the action can be partly irreversible, and it can involve finance, CRM, and inventory agents. Cascade maps those consequences before a human decides. The simulation is read-only: it does not execute the refund or change Mercora order data. The direct refund endpoint returns **410 Gone** so a refund cannot bypass the simulate-before-act flow. Refund execution itself is not implemented.
+
+| Without Cascade | With Mercora + Cascade |
+|---|---|
+| An operator sees the requested refund. | The operator sees a consequence report before deciding. |
+| Downstream agent actions are difficult to anticipate. | Blast radius, risk, and policy decision are visible together. |
+| A refund can look like one isolated action. | The simulation shows it as a connected set of consequences. |
+
+[Back to top](#mercora)
 
 ## Key Features
 
 **E-commerce Operations**
-- Order management (create, view, ship, cancel)
-- Product catalog with SKU, pricing and stock levels
-- Customer profiles with lifetime value tracking
-- Inventory management with reorder alerts
-- Revenue and performance analytics
+
+- Dashboard, orders, products, customers, inventory, and analytics.
+- Review order details, manage catalog and stock, and track customer value.
+- Administrator-managed access; evaluators have a read-only role.
 
 **Cascade Integration**
-- Refund simulation endpoint (`POST /api/cascade/simulate-refund`)
-- Displays consequence reports: blast radius, risk scores, policy decisions
-- Direct refund endpoint disabled to enforce simulation workflow
-- Simulation does not execute refunds or modify order state
 
----
+- Simulate refunds for the demo orders mapped to Cascade.
+- Review blast radius, risk factors, and policy decisions in the order workflow.
+- Run a built-in Cascade demo scenario. Simulations do not execute operations.
 
-## Technology Stack and Cascade Integration
+[Back to top](#mercora)
+
+## Demo
+
+- **Video:** [Watch the demo](https://REPLACE_WITH_DEMO_VIDEO_URL)
+- **Live app:** [Open Mercora](https://demo-polish-web---mercora-web-gp5ciyqy6a-el.a.run.app/dashboard)
+- **API docs:** [Open FastAPI docs](https://REPLACE_WITH_API_DOCS_URL)
+
+<p align="center">
+  <a href="https://REPLACE_WITH_DEMO_VIDEO_URL"><img src="docs/assets/demo-thumbnail.png" width="720" alt="Mercora demo video thumbnail" /></a>
+  <br /><em>Click the thumbnail to watch the product walkthrough.</em>
+</p>
+
+[Back to top](#mercora)
+
+## How It Works
+
+The operator starts a simulation from an order. Mercora's API sends a scoped request to Cascade and returns its consequence report to the UI.
+
+```mermaid
+sequenceDiagram
+    actor Operator
+    participant UI as Mercora UI
+    participant API as Mercora API
+    participant Cascade as Cascade API
+    Operator->>UI: Choose simulate refund
+    UI->>API: POST /api/cascade/simulate-refund
+    API->>Cascade: POST /api/actions/simulate
+    Cascade-->>API: Consequence report
+    API-->>UI: Blast radius, risk, decision
+    UI-->>Operator: Review before deciding
+```
+
+The simulation is read-only: it checks that the order is unchanged and does not call a refund execution API. The direct `POST /api/orders/{order_id}/refund` endpoint is disabled and returns **410 Gone**. Only orders in the configured demo mapping can be simulated.
+
+[Back to top](#mercora)
+
+## Screenshots
+
+| Sign in and dashboard | Orders and refund flow |
+|---|---|
+| <p align="center"><img src="docs/assets/screenshots/01-login.png" width="420" alt="Mercora sign-in screen" /><br /><em>Sign in or request access.</em></p> | <p align="center"><img src="docs/assets/screenshots/02-dashboard.png" width="420" alt="Mercora operations dashboard" /><br /><em>Business and inventory overview.</em></p> |
+| <p align="center"><img src="docs/assets/screenshots/03-orders.png" width="420" alt="Mercora orders list" /><br /><em>Choose an eligible demo order.</em></p> | <p align="center"><img src="docs/assets/screenshots/04-order-detail-refund.png" width="420" alt="Mercora order detail with refund simulation action" /><br /><em>Start a refund simulation from an order.</em></p> |
+| <p align="center"><img src="docs/assets/screenshots/05-cascade-simulation-result.png" width="420" alt="Cascade refund simulation result with blast radius, risk, and decision" /><br /><em>Review consequences before deciding.</em></p> | <p align="center"><img src="docs/assets/screenshots/06-products-inventory.png" width="420" alt="Mercora products and inventory screens" /><br /><em>Manage products and stock.</em></p> |
+| <p align="center"><img src="docs/assets/screenshots/07-customers.png" width="420" alt="Mercora customer profiles" /><br /><em>Review customer profiles and lifetime value.</em></p> | <p align="center"><img src="docs/assets/architecture-overview.png" width="420" alt="Mercora and Cascade architecture overview" /><br /><em>Mercora calls Cascade for consequence simulation.</em></p> |
+
+[Back to top](#mercora)
+
+## Tech Stack
 
 | Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Frontend** | Next.js 15.0.0, React 19.0.0, TypeScript 5.3.0, Tailwind CSS 3.4.0 | E-commerce user interface |
-| **Backend** | FastAPI 0.104.1, Python 3.11+, SQLAlchemy 2.0.23, PyJWT 2.9.0 | Commerce APIs and Cascade integration |
-| **Database** | PostgreSQL (Neon) | Commerce data (orders, products, customers, inventory) |
-| **Cascade** | External REST API | Refund consequence simulation |
+|---|---|---|
+| Frontend | Next.js 15, React 19, TypeScript, Tailwind CSS | Operator interface |
+| Backend | FastAPI, Python 3.11+, SQLAlchemy | Commerce API and Cascade client |
+| Database | PostgreSQL on Neon | Users and commerce records |
+| Deployment | Google Cloud Run | API and web services; see the [deployment guide](docs/DEPLOY_CLOUD_RUN.md) |
+| Consequence engine | [Cascade REST API](https://github.com/KRYSTALM7/cascade) | Refund consequence simulation |
 
-**Integration flow:**
-- Mercora backend sends refund simulation requests to Cascade REST API
-- Cascade returns consequence report (blast radius, risk assessment, policy decision)
-- Mercora displays the returned information in the operator UI
-- Simulation is read-only; actual refund execution is not implemented
+<details>
+<summary><b>Key dependencies and versions</b></summary>
 
-**Key dependencies:**
-- Backend: httpx 0.27.2 (Cascade client), Pydantic 2.5.0, psycopg2-binary 2.9.9
-- Frontend: Axios 1.6.0, Recharts 2.10.0, Lucide React 0.460.0
+Frontend versions below are the project-declared versions from `package.json`; the backend versions are pinned in `backend/requirements.txt`.
 
----
+| Area | Dependencies |
+|---|---|
+| Frontend | Next.js `^15.0.0`, React / React DOM `^19.0.0`, TypeScript `^5.3.0`, Tailwind CSS `^3.4.0`, Axios `^1.6.0`, Recharts `^2.10.0`, date-fns `^2.30.0`, lucide-react `^0.460.0`; dev: `@types/node` `^20.0.0`, `@types/react` / `@types/react-dom` `^19.0.0`, PostCSS `^8.4.0`, Autoprefixer `^10.4.0`, ESLint `^8.54.0`, eslint-config-next `^15.0.0` |
+| Backend | FastAPI `0.104.1`, Uvicorn `0.24.0`, SQLAlchemy `2.0.23`, psycopg2-binary `2.9.9`, Pydantic `2.5.0`, pydantic-settings `2.1.0`, python-dotenv `1.0.0`, httpx `0.27.2`, PyJWT `2.9.0` |
+
+</details>
+
+[Back to top](#mercora)
 
 ## Getting Started
 
-### Prerequisites
+**Prerequisites:** Node.js 18+, Python 3.11+, and PostgreSQL 14+ or a [Neon](https://neon.tech) database. Run Cascade separately if you want live consequence reports.
 
-- Node.js 18+ 
-- Python 3.11+
-- PostgreSQL 14+ or [Neon account](https://console.neon.tech)
+### Install
 
-### Installation
+From the repository root:
 
 ```bash
-# Clone repository
-git clone <repository-url>
-cd mercora
+python -m venv .venv
+source .venv/bin/activate
+pip install -r backend/requirements.txt
+cd frontend && npm install
+```
 
-# Backend setup
-cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
+PowerShell:
 
-# Frontend setup
-cd ../frontend
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r backend\requirements.txt
+Set-Location frontend
 npm install
 ```
 
-### Configuration
+### Configure
 
-**Backend** - Create `backend/.env`:
-```bash
-DATABASE_URL=postgresql://user:password@host.neon.tech/dbname?sslmode=require
-SECRET_KEY=<generate-with-openssl-rand-hex-32>
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=<secure-password>
+Create `backend/.env` and `frontend/.env.local`. Keep real credentials out of source control. The frontend API URL is embedded at build time for production builds.
 
-CASCADE_API_URL=https://cascade-api-1097302968574.asia-south1.run.app
-CASCADE_DEMO_USER=ops-ravi
-CASCADE_TIMEOUT_SECONDS=30.0
+<details>
+<summary><b>Environment variables</b></summary>
+
+Backend `backend/.env` (example-only values):
+
+```dotenv
+API_TITLE=Mercora API
+API_VERSION=1.0.0
+DATABASE_URL=postgresql://USER:PASSWORD@HOST/DB?sslmode=require
+CORS_ORIGINS=http://localhost:3000
+LOG_LEVEL=INFO
+SECRET_KEY=replace-with-a-long-random-value
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_HOURS=24
+ADMIN_EMAIL=admin@example.test
+ADMIN_PASSWORD=replace-with-a-strong-secret
+EVALUATOR_EMAIL=evaluator@example.test
+EVALUATOR_PASSWORD=replace-with-a-demo-password
+CASCADE_API_URL=http://localhost:8000
+CASCADE_DEMO_USER=demo-operator
+CASCADE_TIMEOUT_SECONDS=30
 ```
 
-**Frontend** - Create `frontend/.env.local`:
-```bash
+Frontend `frontend/.env.local`:
+
+```dotenv
 NEXT_PUBLIC_API_URL=http://localhost:8001
 ```
 
-**Database:** Schema is created automatically on first startup via `Base.metadata.create_all()`.
+`ADMIN_EMAIL` and `ADMIN_PASSWORD` are used only by the one-time bootstrap command. Never use example values in a shared environment. Optional frontend settings include `NEXT_PUBLIC_EVALUATOR_EMAIL`, `NEXT_PUBLIC_EVALUATOR_PASSWORD`, `NEXT_PUBLIC_APP_NAME`, and `NEXT_PUBLIC_APP_VERSION`; values prefixed with `NEXT_PUBLIC_` are public in the browser bundle and must never contain secrets.
 
-**Sample data (optional):**
+</details>
+
+### Run locally
+
+Start the backend from the repository root:
+
 ```bash
-cd backend
-python scripts/load_kaggle_data.py
+uvicorn backend.app:app --host 127.0.0.1 --port 8001 --reload
 ```
 
-### Running
+PowerShell equivalent:
 
-**Backend:**
-```bash
-uvicorn backend.app:app --host 0.0.0.0 --port 8001 --reload
+```powershell
+python -m uvicorn backend.app:app --host 127.0.0.1 --port 8001 --reload
 ```
-API: `http://localhost:8001` (docs at `/docs`)
 
-**Frontend:**
+Then start the frontend in another terminal:
+
 ```bash
 cd frontend
 npm run dev
 ```
-Application: `http://localhost:3000`
 
-**Login:** Use credentials from `backend/.env`
+Open `http://localhost:3000`. The API docs are served at `/docs` on the backend. Database tables are created at startup; an administrator account must be provisioned separately.
 
----
+<details>
+<summary><b>First-time administrator and access flow</b></summary>
+
+Set `ADMIN_EMAIL` and a strong `ADMIN_PASSWORD` in `backend/.env`, then run once from the repository root:
+
+```bash
+python -m backend.scripts.bootstrap_admin
+```
+
+PowerShell:
+
+```powershell
+python -m backend.scripts.bootstrap_admin
+```
+
+The command is idempotent: it creates the admin if absent and leaves an existing admin password unchanged. Normal API startup does not create an administrator. In the deployed setup, the one-off bootstrap is run as described in [the Cloud Run guide](docs/DEPLOY_CLOUD_RUN.md).
+
+Staff can submit **Request access**. An administrator reviews requests through the admin-only API and approves them; the generated temporary password is returned only to that administrator for secure delivery. Password reset is unavailable; users must contact their administrator.
+
+**Sample data warning:** `backend/scripts/load_kaggle_data.py` inserts synthetic products, customers, orders, and order items. It is not part of normal setup. Run it only against a disposable database, never a working Mercora dataset.
+
+</details>
+
+[Back to top](#mercora)
+
+## Deployment
+
+The repository includes a Cloud Run staging and release runbook: [docs/DEPLOY_CLOUD_RUN.md](docs/DEPLOY_CLOUD_RUN.md). Review its environment and target details carefully before using it.
+
+[Back to top](#mercora)
 
 ## Testing
 
-**Backend integration tests:**
-```bash
-cd backend
-python test_cascade_integration.py
+The legacy `backend/test_cascade_integration.py` script mutates fixture data and order statuses. Run it only against a dedicated disposable test database, never a working Mercora database. The sample-data loader is also for disposable databases only.
+
+<details>
+<summary><b>Safe checks and test commands</b></summary>
+
+Non-mutating backend smoke check:
+
+```powershell
+.venv\Scripts\python.exe test_backend.py
 ```
 
-Tests verify:
-- Cascade health check
-- Successful refund simulation
-- Input validation
-- Direct refund endpoint disabled (410 response)
-- Simulation state immutability
-- Authentication requirements
+Frontend tests and validation:
 
-**Frontend validation:**
 ```bash
 cd frontend
+npm test
 npm run type-check
 npm run lint
 npm run build
 ```
 
----
+The backend unit tests use the project's unittest setup; for example:
 
-## Contributors
+```bash
+python -m unittest backend.test_auth backend.test_config backend.test_evaluator_demo
+```
+
+</details>
+
+[Back to top](#mercora)
+
+## Project Structure
+
+<details>
+<summary><b>Repository map</b></summary>
+
+```text
+backend/                 FastAPI app, routers, models, services, scripts, and tests
+  routers/               Auth, commerce, analytics, and Cascade routes
+  services/              Order, product, customer, inventory, and analytics logic
+  scripts/                Admin bootstrap and data utilities
+frontend/src/app/        Next.js pages and global styles
+frontend/src/components/ Shared layout, UI, and Cascade result components
+frontend/src/context/    Authentication state
+frontend/src/lib/        API client and display helpers
+docs/                    Deployment guide, screenshots, and README assets
+```
+
+</details>
+
+[Back to top](#mercora)
+
+## Team
 
 | Contributor | Focus | Profiles |
-|-------------|-------|----------|
+|---|---|---|
 | **Sujan Kumar** | Product engineering, Cascade integration and implementation | [![GitHub](https://img.shields.io/badge/GitHub-KRYSTALM7-181717?logo=github)](https://github.com/KRYSTALM7) [![Google Developers](https://img.shields.io/badge/Google_Developers-CR1TIC4L-4285F4?logo=google&logoColor=white)](https://g.dev/CR1TIC4L) |
 | **Ipjrb12** | Planning, system design, workflow design and architecture | [![GitHub](https://img.shields.io/badge/GitHub-ipjrb12-181717?logo=github)](https://github.com/ipjrb12) [![Google Developers](https://img.shields.io/badge/Google_Developers-ipshita12gdg-4285F4?logo=google&logoColor=white)](https://me.developers.google.com/u/ipshita12gdg) |
 
----
-
-## Contributing
-
-Contributions are welcome. Open an issue to discuss significant changes before starting work.
-
----
+[Back to top](#mercora)
 
 ## License and Attribution
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Mercora is released under the [MIT License](LICENSE). Mercora's refund consequence simulation is powered by [Cascade](https://github.com/KRYSTALM7/cascade). PostgreSQL hosting is provided by [Neon](https://neon.tech).
 
-**Cascade:** Mercora integrates with Cascade, an external consequence intelligence engine that provides refund simulation capabilities via REST API.
+[Back to top](#mercora)
 
-**Neon:** Database hosting provided by [Neon](https://neon.tech).
+<p align="center">
+  <img src="docs/assets/logo.png" width="64" alt="Cascade logo used by Mercora" />
+  <br /><strong>Built for Google AI Builder Cup 2026</strong>
+</p>
