@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=nextdotjs" alt="Next.js 15" />
   <img src="https://img.shields.io/badge/React-19-149ECA?style=flat-square&logo=react" alt="React 19" />
   <img src="https://img.shields.io/badge/FastAPI-0.104.1-009688?style=flat-square&logo=fastapi" alt="FastAPI 0.104.1" />
-  <img src="https://img.shields.io/badge/PostgreSQL-Neon-008BB9?style=flat-square&logo=postgresql" alt="PostgreSQL on Neon" />
+  <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Google_Cloud-Run-4285F4?style=flat-square&logo=googlecloud" alt="Google Cloud Run" />
   <a href="https://github.com/KRYSTALM7/cascade"><img src="https://img.shields.io/badge/Engine-Cascade-7C3AED?style=flat-square" alt="Cascade consequence intelligence engine" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License" /></a>
@@ -22,11 +22,6 @@
 </p>
 
 Mercora is a demo e-commerce operations app for orders, products, customers, and inventory. Its refund flow connects the operator experience to [Cascade](https://github.com/KRYSTALM7/cascade), a consequence-intelligence engine.
-
-<p align="center">
-  <a href="https://REPLACE_WITH_DEMO_VIDEO_URL"><img src="docs/assets/screenshots/05-cascade-simulation-result.png" width="760" alt="Cascade simulation result showing a refund's blast radius, risk, and policy decision" /></a>
-  <br /><em>A refund simulation, with downstream impact visible before anyone acts.</em>
-</p>
 
 ## Why Mercora?
 
@@ -39,8 +34,6 @@ Refunds are a useful first case: money moves, the action can be partly irreversi
 | An operator sees the requested refund. | The operator sees a consequence report before deciding. |
 | Downstream agent actions are difficult to anticipate. | Blast radius, risk, and policy decision are visible together. |
 | A refund can look like one isolated action. | The simulation shows it as a connected set of consequences. |
-
-[Back to top](#mercora)
 
 ## Key Features
 
@@ -56,20 +49,10 @@ Refunds are a useful first case: money moves, the action can be partly irreversi
 - Review blast radius, risk factors, and policy decisions in the order workflow.
 - Run a built-in Cascade demo scenario. Simulations do not execute operations.
 
-[Back to top](#mercora)
-
 ## Demo
 
-- **Video:** [Watch the demo](https://REPLACE_WITH_DEMO_VIDEO_URL)
+- **Video:** A public recording is not available yet.
 - **Live app:** [Open Mercora](https://demo-polish-web---mercora-web-gp5ciyqy6a-el.a.run.app/dashboard)
-- **API docs:** [Open FastAPI docs](https://REPLACE_WITH_API_DOCS_URL)
-
-<p align="center">
-  <a href="https://REPLACE_WITH_DEMO_VIDEO_URL"><img src="docs/assets/demo-thumbnail.png" width="720" alt="Mercora demo video thumbnail" /></a>
-  <br /><em>Click the thumbnail to watch the product walkthrough.</em>
-</p>
-
-[Back to top](#mercora)
 
 ## How It Works
 
@@ -91,8 +74,6 @@ sequenceDiagram
 
 The simulation is read-only: it checks that the order is unchanged and does not call a refund execution API. The direct `POST /api/orders/{order_id}/refund` endpoint is disabled and returns **410 Gone**. Only orders in the configured demo mapping can be simulated.
 
-[Back to top](#mercora)
-
 ## Screenshots
 
 | Sign in and dashboard | Orders and refund flow |
@@ -102,15 +83,13 @@ The simulation is read-only: it checks that the order is unchanged and does not 
 | <p align="center"><img src="docs/assets/screenshots/05-cascade-simulation-result.png" width="420" alt="Cascade refund simulation result with blast radius, risk, and decision" /><br /><em>Review consequences before deciding.</em></p> | <p align="center"><img src="docs/assets/screenshots/06-products-inventory.png" width="420" alt="Mercora products and inventory screens" /><br /><em>Manage products and stock.</em></p> |
 | <p align="center"><img src="docs/assets/screenshots/07-customers.png" width="420" alt="Mercora customer profiles" /><br /><em>Review customer profiles and lifetime value.</em></p> | <p align="center"><img src="docs/assets/architecture-overview.png" width="420" alt="Mercora and Cascade architecture overview" /><br /><em>Mercora calls Cascade for consequence simulation.</em></p> |
 
-[Back to top](#mercora)
-
 ## Tech Stack
 
 | Component | Technology | Purpose |
 |---|---|---|
 | Frontend | Next.js 15, React 19, TypeScript, Tailwind CSS | Operator interface |
 | Backend | FastAPI, Python 3.11+, SQLAlchemy | Commerce API and Cascade client |
-| Database | PostgreSQL on Neon | Users and commerce records |
+| Database | PostgreSQL | Users and commerce records |
 | Deployment | Google Cloud Run | API and web services; see the [deployment guide](docs/DEPLOY_CLOUD_RUN.md) |
 | Consequence engine | [Cascade REST API](https://github.com/KRYSTALM7/cascade) | Refund consequence simulation |
 
@@ -126,11 +105,9 @@ Frontend versions below are the project-declared versions from `package.json`; t
 
 </details>
 
-[Back to top](#mercora)
-
 ## Getting Started
 
-**Prerequisites:** Node.js 18+, Python 3.11+, and PostgreSQL 14+ or a [Neon](https://neon.tech) database. Run Cascade separately if you want live consequence reports.
+**Prerequisites:** Node.js 18+, Python 3.11+, and PostgreSQL 14+. Run Cascade separately if you want live consequence reports.
 
 ### Install
 
@@ -236,13 +213,9 @@ Staff can submit **Request access**. An administrator reviews requests through t
 
 </details>
 
-[Back to top](#mercora)
-
 ## Deployment
 
 The repository includes a Cloud Run staging and release runbook: [docs/DEPLOY_CLOUD_RUN.md](docs/DEPLOY_CLOUD_RUN.md). Review its environment and target details carefully before using it.
-
-[Back to top](#mercora)
 
 ## Testing
 
@@ -275,8 +248,6 @@ python -m unittest backend.test_auth backend.test_config backend.test_evaluator_
 
 </details>
 
-[Back to top](#mercora)
-
 ## Project Structure
 
 <details>
@@ -296,8 +267,6 @@ docs/                    Deployment guide, screenshots, and README assets
 
 </details>
 
-[Back to top](#mercora)
-
 ## Team
 
 | Contributor | Focus | Profiles |
@@ -305,15 +274,8 @@ docs/                    Deployment guide, screenshots, and README assets
 | **Sujan Kumar** | Product engineering, Cascade integration and implementation | [![GitHub](https://img.shields.io/badge/GitHub-KRYSTALM7-181717?logo=github)](https://github.com/KRYSTALM7) [![Google Developers](https://img.shields.io/badge/Google_Developers-CR1TIC4L-4285F4?logo=google&logoColor=white)](https://g.dev/CR1TIC4L) |
 | **Ipjrb12** | Planning, system design, workflow design and architecture | [![GitHub](https://img.shields.io/badge/GitHub-ipjrb12-181717?logo=github)](https://github.com/ipjrb12) [![Google Developers](https://img.shields.io/badge/Google_Developers-ipshita12gdg-4285F4?logo=google&logoColor=white)](https://me.developers.google.com/u/ipshita12gdg) |
 
-[Back to top](#mercora)
-
 ## License and Attribution
 
-Mercora is released under the [MIT License](LICENSE). Mercora's refund consequence simulation is powered by [Cascade](https://github.com/KRYSTALM7/cascade). PostgreSQL hosting is provided by [Neon](https://neon.tech).
+Mercora is released under the [MIT License](LICENSE). Mercora's refund consequence simulation is powered by [Cascade](https://github.com/KRYSTALM7/cascade). PostgreSQL hosting is configured separately; see the [Cloud Run deployment guide](docs/DEPLOY_CLOUD_RUN.md).
 
-[Back to top](#mercora)
-
-<p align="center">
-  <img src="docs/assets/logo.png" width="64" alt="Cascade logo used by Mercora" />
-  <br /><strong>Built for Google AI Builder Cup 2026</strong>
-</p>
+<p align="center"><strong>Built for Google AI Builder Cup 2026</strong></p>
